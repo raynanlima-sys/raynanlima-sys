@@ -1,0 +1,126 @@
+name: CI - Verificação do Projeto
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+
+  verificar-projeto:
+    name: 🔍 Verificar Projeto
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 1. Baixar o código do repositório
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      # 2. Mostrar informações do ambiente
+      - name: 💻 Informações do sistema
+        run: |
+          echo "======================================"
+          echo "      INFORMAÇÕES DO AMBIENTE"
+          echo "======================================"
+          echo "Sistema operacional:"
+          uname -a
+          echo ""
+          echo "Versão do Git:"
+          git --version
+          echo ""
+          echo "Diretório atual:"
+          pwd
+
+      # 3. Listar os arquivos
+      - name: 📂 Listar arquivos do projeto
+        run: |
+          echo "======================================"
+          echo "        ARQUIVOS DO PROJETO"
+          echo "======================================"
+          ls -la
+
+      # 4. Verificar se existe HTML
+      - name: 🌐 Verificar arquivos HTML
+        run: |
+          echo "Verificando arquivos HTML..."
+
+          if ls *.html 1> /dev/null 2>&1; then
+            echo "✅ Arquivo HTML encontrado!"
+            ls *.html
+          else
+            echo "⚠️ Nenhum arquivo HTML encontrado."
+          fi
+
+      # 5. Verificar CSS
+      - name: 🎨 Verificar arquivos CSS
+        run: |
+          echo "Verificando arquivos CSS..."
+
+          if ls *.css 1> /dev/null 2>&1; then
+            echo "✅ Arquivo CSS encontrado!"
+            ls *.css
+          else
+            echo "⚠️ Nenhum arquivo CSS encontrado."
+          fi
+
+      # 6. Verificar JavaScript
+      - name: ⚡ Verificar arquivos JavaScript
+        run: |
+          echo "Verificando arquivos JavaScript..."
+
+          if ls *.js 1> /dev/null 2>&1; then
+            echo "✅ Arquivo JavaScript encontrado!"
+            ls *.js
+          else
+            echo "⚠️ Nenhum arquivo JavaScript encontrado."
+          fi
+
+      # 7. Verificar README
+      - name: 📖 Verificar README
+        run: |
+          echo "Verificando README..."
+
+          if [ -f "README.md" ]; then
+            echo "✅ README.md encontrado!"
+          else
+            echo "⚠️ README.md não encontrado."
+          fi
+
+      # 8. Mostrar estrutura do projeto
+      - name: 🗂️ Estrutura do projeto
+        run: |
+          echo "======================================"
+          echo "       ESTRUTURA DO PROJETO"
+          echo "======================================"
+          find . -maxdepth 2 -type f | sort
+
+      # 9. Verificar tamanho do projeto
+      - name: 📊 Informações do projeto
+        run: |
+          echo "======================================"
+          echo "       INFORMAÇÕES DO PROJETO"
+          echo "======================================"
+          echo "Quantidade de arquivos:"
+          find . -type f | wc -l
+
+          echo ""
+          echo "Tamanho total:"
+          du -sh .
+
+      # 10. Finalizar workflow
+      - name: ✅ Finalizar verificação
+        run: |
+          echo "======================================"
+          echo "       VERIFICAÇÃO CONCLUÍDA"
+          echo "======================================"
+          echo "✅ Código baixado"
+          echo "✅ Arquivos analisados"
+          echo "✅ Estrutura verificada"
+          echo "🚀 Workflow executado com sucesso!"
