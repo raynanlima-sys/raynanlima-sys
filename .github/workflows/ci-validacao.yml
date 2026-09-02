@@ -1,0 +1,213 @@
+name: ci-profissional.yml
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+
+  # ==================================================
+  # CONFIGURAÇÃO DO AMBIENTE
+  # ==================================================
+
+  setup:
+    name: ⚙️ Configurar ambiente
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📋 Mostrar informações
+        run: |
+          echo "======================================"
+          echo "      INFORMAÇÕES DO AMBIENTE"
+          echo "======================================"
+          echo "Sistema: Ubuntu"
+          echo "Node.js:"
+          node --version
+          echo "NPM:"
+          npm --version
+          echo "Git:"
+          git --version
+
+  # ==================================================
+  # VALIDAÇÃO HTML
+  # ==================================================
+
+  html:
+    name: 🌐 Validar HTML
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Instalar HTMLHint
+        run: npm install --no-save htmlhint
+
+      - name: 🔍 Procurar arquivos HTML
+        run: |
+          echo "Arquivos HTML encontrados:"
+          find . -name "*.html" -not -path "./node_modules/*"
+
+      - name: 🧪 Executar validação HTML
+        run: |
+          FILES=$(find . -name "*.html" -not -path "./node_modules/*")
+
+          if [ -z "$FILES" ]; then
+            echo "⚠️ Nenhum arquivo HTML encontrado."
+          else
+            echo "🔎 Validando arquivos HTML..."
+            npx htmlhint $FILES
+            echo "✅ HTML validado com sucesso!"
+          fi
+
+  # ==================================================
+  # VALIDAÇÃO CSS
+  # ==================================================
+
+  css:
+    name: 🎨 Validar CSS
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Instalar Stylelint
+        run: npm install --no-save stylelint stylelint-config-standard
+
+      - name: ⚙️ Criar configuração CSS
+        run: |
+          cat > .stylelintrc.json <<'EOF'
+          {
+            "extends": ["stylelint-config-standard"]
+          }
+          EOF
+
+      - name: 🔍 Procurar arquivos CSS
+        run: |
+          echo "Arquivos CSS encontrados:"
+          find . -name "*.css" -not -path "./node_modules/*"
+
+      - name: 🧪 Executar validação CSS
+        run: |
+          FILES=$(find . -name "*.css" -not -path "./node_modules/*")
+
+          if [ -z "$FILES" ]; then
+            echo "⚠️ Nenhum arquivo CSS encontrado."
+          else
+            npx stylelint $FILES
+            echo "✅ CSS validado com sucesso!"
+          fi
+
+  # ==================================================
+  # VALIDAÇÃO JAVASCRIPT
+  # ==================================================
+
+  javascript:
+    name: ⚡ Validar JavaScript
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🔍 Procurar arquivos JavaScript
+        run: |
+          echo "Arquivos JavaScript encontrados:"
+          find . -name "*.js" -not -path "./node_modules/*"
+
+      - name: 🧪 Verificar sintaxe JavaScript
+        run: |
+          FILES=$(find . -name "*.js" -not -path "./node_modules/*")
+
+          if [ -z "$FILES" ]; then
+            echo "⚠️ Nenhum arquivo JavaScript encontrado."
+          else
+            for FILE in $FILES
+            do
+              echo "Verificando: $FILE"
+              node --check "$FILE"
+            done
+
+            echo "✅ JavaScript validado com sucesso!"
+          fi
+
+  # ==================================================
+  # TESTES FINAIS
+  # ==================================================
+
+  testes:
+    name: 🧪 Testes automáticos
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+      - html
+      - css
+      - javascript
+
+    steps:
+
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 🔎 Verificar estrutura
+        run: |
+          echo "======================================"
+          echo "       ESTRUTURA DO PROJETO"
+          echo "======================================"
+
+          find . -maxdepth 2 -type f \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" \
+            | sort
+
+      - name: 📊 Gerar relatório
+        run: |
+          echo "======================================"
+          echo "          RELATÓRIO FINAL"
+          echo "======================================"
+
+          echo "HTML:"
+          find . -name "*.html" -not -path "./node_modules/*" | wc -l
+
+          echo "CSS:"
+          find . -name "*.css" -not -path "./node_modules/*" | wc -l
+
+          echo "JavaScript:"
+          find . -name "*.js" -not -path "./node_modules/*" | wc -l
+
+          echo "======================================"
+          echo "✅ TODOS OS TESTES FORAM CONCLUÍDOS"
+          echo "🚀 PROJETO APROVADO PELO CI"
+          echo "======================================"
